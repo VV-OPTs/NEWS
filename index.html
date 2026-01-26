@@ -178,6 +178,34 @@
             align-items: center;margin-bottom: 15px;}
         .image-control-header h3 {margin: 0;font-size: 1.1rem;
             color: #444;display: flex;align-items: center;gap: 8px;}
+        
+        /* // 26.1.26: 修改 CSS - 移除滤镜，新增噪点纹理与布局 */
+        /* 噪点纹理层 */
+        .newspaper.has-noise::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 5;
+            /* 生成细微的杂色噪点 */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E");
+            opacity: 0.4; /* 调整不透明度，不要太遮挡文字 */
+            mix-blend-mode: multiply;
+        }
+
+        /* 布局控制 */
+        .layout-column { flex-direction: column; }
+        .layout-row { flex-direction: row; align-items: flex-start; }
+        .layout-row-reverse { flex-direction: row-reverse; align-items: flex-start; }
+        
+        /* 折叠面板样式 */
+        .control-group.collapsed .control-row,
+        .control-group.collapsed > label,
+        .control-group.collapsed .image-upload,
+        .control-group.collapsed .control-subtitle {
+            display: none;
+        }
+        /* // 修改结束 */
     </style>
 </head>
 <body>
@@ -201,6 +229,26 @@
                         </div>
                     </div>
                     <div class="control-subtitle">控制是否在报纸中显示图片</div>
+                    
+                    <!-- // 26.1.26: 新增 HTML - 噪点开关与布局控制 -->
+                    <div class="control-row">
+                        <div class="control-item">
+                            <label>整体质感</label>
+                            <label class="checkbox-group" style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+                                <input type="checkbox" id="paperNoise"> 旧报纸噪点
+                            </label>
+                        </div>
+                        <div class="control-item">
+                            <label>排版布局</label>
+                            <select id="imageLayout">
+                                <option value="column">上图下文</option>
+                                <option value="row" selected>默认 (左图右文)</option>
+                                <option value="row-reverse">右图左文</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- // 修改结束 -->
+
                     <label for="imageUpload">上传图片</label>
                     <div class="image-upload" id="imageUpload">
                         <i class="fas fa-image"></i>
@@ -263,7 +311,13 @@
                     </div>
                     <div class="control-row">
                         <div class="control-item">
-                            <label for="paperDateText">报纸期号与日期</label>
+                            <!-- // 26.1.26: 修改 HTML - 增加期号隐藏开关 -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <label for="paperDateText" style="margin-bottom:0;">报纸期号与日期</label>
+                                <label style="font-size:0.8rem;cursor:pointer;"><input type="checkbox" id="paperDateVisible" checked> 显示</label>
+                            </div>
+                            <div style="margin-top:8px;"></div>
+                            <!-- // 修改结束 -->
                             <input type="text" id="paperDateText" placeholder="请输入期号和日期..." value="第XXXX期 · XXXX专刊 · XXXX年XX月XX日（这里依然也是可以碎碎念，写'作者xxx'也可以，什么都行）">
                         </div>
                         <div class="control-item">
@@ -506,6 +560,9 @@
         const paperDateColorValue = document.getElementById('paperDateColorValue');
         const paperDateColorPreview = document.getElementById('paperDateColorPreview');
         const paperDateFontPreview = document.getElementById('paperDateFontPreview');
+        // 26.1.26: 修改 JS - 获取期号开关元素
+        const paperDateVisible = document.getElementById('paperDateVisible');
+        // 修改结束
         
         // 标题控件
         const articleTitle = document.getElementById('articleTitle');
@@ -571,10 +628,18 @@
         
         // 图片显示/隐藏控制
         imageVisible.addEventListener('change', function() {
-            if (this.checked) {articleImageContainer.style.display = 'block';
+            // 26.1.26: 修改 JS - 增加面板折叠逻辑
+            const group = this.closest('.control-group');
+            if (this.checked) {
+                articleImageContainer.style.display = 'block';
                 previewContent.classList.remove('no-image');
-            } else {articleImageContainer.style.display = 'none';
-                previewContent.classList.add('no-image');}
+                group.classList.remove('collapsed'); // 展开面板
+            } else {
+                articleImageContainer.style.display = 'none';
+                previewContent.classList.add('no-image');
+                group.classList.add('collapsed'); // 折叠面板
+            }
+            // 修改结束
             updateNewspaper();});
         
         // 图片上传功能
@@ -588,6 +653,30 @@
                     updateNewspaper();
                     showToast('图片上传成功！');};
                 reader.readAsDataURL(this.files[0]);}});
+
+        // 26.1.26: 修改 JS - 监听噪点开关与布局切换
+        const paperNoise = document.getElementById('paperNoise'); // 替换 grayscale
+        const imageLayout = document.getElementById('imageLayout');
+        const articleContentDiv = document.querySelector('.article-content');
+        // 26.1.26: 修改 JS - 噪点开关 & 增加期号隐藏监听
+        paperNoise.addEventListener('change', function() {
+            const paper = document.getElementById('newspaper');
+            if (this.checked) paper.classList.add('has-noise');
+            else paper.classList.remove('has-noise');
+            updateNewspaper();
+        });
+
+        imageLayout.addEventListener('change', function() {
+            articleContentDiv.classList.remove('layout-column', 'layout-row', 'layout-row-reverse');
+            articleContentDiv.classList.add(`layout-${this.value}`);
+            updateNewspaper();
+        });
+
+        paperDateVisible.addEventListener('change', function() {
+            previewPaperDate.style.display = this.checked ? 'block' : 'none';
+            updateNewspaper();
+        });
+        // 修改结束
         
         // 支持拖放上传
         imageUpload.addEventListener('dragover', (e) => {
@@ -611,6 +700,11 @@
         // 报纸头部控制
         headerVisible.addEventListener('change', function() {
             newspaperHeader.style.display = this.checked ? 'block' : 'none';
+            // 26.1.26: 修改 JS - 增加面板折叠逻辑
+            const group = this.closest('.control-group');
+            if (this.checked) group.classList.remove('collapsed');
+            else group.classList.add('collapsed');
+            // 修改结束
             updateNewspaper();});
         paperNameFontSize.addEventListener('input', function() {
             paperNameSizeValue.textContent = this.value;
@@ -679,6 +773,11 @@
         // 底部信息控制
         footerVisible.addEventListener('change', function() {
             newspaperFooter.style.display = this.checked ? 'block' : 'none';
+            // 26.1.26: 修改 JS - 增加面板折叠逻辑
+            const group = this.closest('.control-group');
+            if (this.checked) group.classList.remove('collapsed');
+            else group.classList.add('collapsed');
+            // 修改结束
             updateNewspaper();});
         footerFontSize.addEventListener('input', function() {
             footerSizeValue.textContent = this.value;
@@ -818,18 +917,39 @@
             // 使用html2canvas将报纸转换为图片
             html2canvas(document.getElementById('newspaper'), {
                 backgroundColor: '#faf8f2',
-                scale: 2,
-                useCORS: true,
+                scale: 2, // 2倍清晰度
+                useCORS: true, // 允许跨域图片
                 logging: false
             }).then(canvas => {
-                // 创建下载链接
-                const link = document.createElement('a');
-                link.download = `同人报纸-${new Date().getTime()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showToast('图片下载完成！');
-            }).catch(err => {console.error('生成图片时出错:', err);
-                showToast('生成图片失败，请重试。');});});
+                // 26.1.26: 修改 JS - 改用 Blob 方式处理图片，解决移动端 Base64 长度限制导致下载失败的问题
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        showToast('生成图片失败，请重试');
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `同人报纸-${new Date().getTime()}.png`;
+                    link.href = url;
+                    
+                    // 兼容性处理：必须添加到 DOM 中才能触发点击
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // 释放内存
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    showToast('图片下载完成！');
+                }, 'image/png');
+                // 修改结束
+            }).catch(err => {
+                console.error('生成图片时出错:', err);
+                // 26.1.26: 修改 JS - 增加手机端错误弹窗，方便排查内存不足等问题
+                alert('生成出错: ' + err.message);
+                // 修改结束
+                showToast('生成图片失败，请重试。');
+            });
+        });
         
         // 保存当前设置
         saveBtn.addEventListener('click', function() {
@@ -838,6 +958,10 @@
                     // 图片设置
                     imageVisible: imageVisible.checked,
                     imageCaption: imageCaption.value,
+                    // 26.1.26: 修改 JS - 保存新字段
+                    paperNoise: document.getElementById('paperNoise').checked,
+                    imageLayout: document.getElementById('imageLayout').value,
+                    // 修改结束
                     
                     // 报纸头部设置
                     headerVisible: headerVisible.checked,
@@ -849,6 +973,9 @@
                     paperDateFontSize: paperDateFontSize.value,
                     paperDateFontFamily: paperDateFontFamily.value,
                     paperDateColor: paperDateColor.value,
+                    // 26.1.26: 修改 JS - 保存期号显示状态
+                    paperDateVisible: paperDateVisible.checked,
+                    // 修改结束
                     
                     // 标题样式设置
                     articleTitle: articleTitle.value,
@@ -896,6 +1023,18 @@
                 // 加载图片设置
                 imageVisible.checked = settings.imageVisible;
                 imageCaption.value = settings.imageCaption || "";
+                // 26.1.26: 修改 JS - 加载新字段
+                if(settings.paperNoise !== undefined) {
+                    document.getElementById('paperNoise').checked = settings.paperNoise;
+                    document.getElementById('paperNoise').dispatchEvent(new Event('change'));
+                }
+                if(settings.imageLayout !== undefined) {
+                    document.getElementById('imageLayout').value = settings.imageLayout;
+                    document.getElementById('imageLayout').dispatchEvent(new Event('change'));
+                }
+                // 触发一次折叠状态更新
+                imageVisible.dispatchEvent(new Event('change'));
+                // 修改结束
                 
                 // 加载报纸头部设置
                 headerVisible.checked = settings.headerVisible;
@@ -915,6 +1054,12 @@
                 paperDateColorValue.textContent = settings.paperDateColor || "#666666";
                 paperDateColorPreview.style.backgroundColor = settings.paperDateColor || "#666666";
                 updateFontPreview(paperDateFontPreview, paperDateFontFamily.value);
+                // 26.1.26: 修改 JS - 加载期号显示状态
+                if (settings.paperDateVisible !== undefined) {
+                    paperDateVisible.checked = settings.paperDateVisible;
+                    paperDateVisible.dispatchEvent(new Event('change'));
+                }
+                // 修改结束
                 
                 // 加载标题样式设置
                 articleTitle.value = settings.articleTitle || "";
@@ -947,6 +1092,8 @@
                 footerColor.value = settings.footerColor || "#666666";
                 footerColorValue.textContent = settings.footerColor || "#666666";
                 footerColorPreview.style.backgroundColor = settings.footerColor || "#666666";
+                // 26.1.26: 触发底部折叠状态
+                footerVisible.dispatchEvent(new Event('change'));
                 
                 // 更新生成日期
                 const now = new Date();
@@ -1101,6 +1248,10 @@
             contentColorPreview.style.backgroundColor = contentColor.value;
             footerColorPreview.style.backgroundColor = footerColor.value;
             
+            // 26.1.26: 修改 JS - 初始化时应用默认布局(左图右文)
+            articleContentDiv.classList.add(`layout-${imageLayout.value}`);
+            // 修改结束
+
             // 应用所有样式并初始化报纸
             applyAllStyles();
             updateNewspaper();
