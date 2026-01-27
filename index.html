@@ -9,20 +9,58 @@
     <style>
         * {margin: 0;padding: 0;box-sizing: border-box;}
         body {font-family: 'Noto Serif SC', serif;background-color: #f5f1e8;
-            color: #333;line-height: 1.6;}
-        .container {max-width: 1600px;margin: 0 auto;padding: 20px;
-            display: flex;flex-direction: column;gap: 30px;}
+            color: #333;line-height: 1.6;padding: 20px;}
+        .container {max-width: 1600px;margin: 0 auto;display: flex;
+            flex-direction: column;gap: 30px;}
         header {text-align: center;padding: 20px 0;border-bottom: 2px solid #8c2e2e;}
         h1 {font-family: 'Playfair Display', serif;color: #8c2e2e;font-size: 2.8rem;
             letter-spacing: 2px;margin-bottom: 10px;}
         .subtitle {font-size: 1.2rem;color: #666;font-style: italic;}
-        .main-content {display: flex;gap: 30px;flex: 1;}
-        .editor-panel {background-color: #fff;padding: 25px;border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);border-top: 8px solid #8c2e2e;
-            overflow-y: auto;min-width: 500px;}
-        .newspaper-preview {background-color: #fff;padding: 40px;
+        .main-content {display: flex;flex-wrap: wrap;gap: 30px;}
+        .editor-panel {flex: 1;min-width: 500px;background-color: #fff;
+            padding: 25px;border-radius: 5px;box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-top: 8px solid #8c2e2e;max-height: 95vh;overflow-y: auto;}
+        .newspaper-preview {flex: 2;min-width: 700px;
+            background-color: #fff;padding: 40px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            background-color: #faf8f2;flex: 1;min-width: 700px;}
+            position: relative;background-color: #faf8f2;}
+        
+        /* 新增：布局切换样式 */
+        .layout-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        .layout-btn {
+            padding: 8px 15px;
+            background-color: #e0d6c2;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        .layout-btn:hover {
+            background-color: #d4c9b8;
+        }
+        .layout-btn.active {
+            background-color: #8c2e2e;
+            color: white;
+        }
+        .vertical-layout .main-content {
+            flex-direction: column;
+        }
+        .vertical-layout .editor-panel,
+        .vertical-layout .newspaper-preview {
+            min-width: 100%;
+            max-height: none;
+        }
+        
         .section-title {font-size: 1.4rem;color: #8c2e2e;margin-bottom: 20px;
             padding-bottom: 10px;border-bottom: 1px solid #e0d6c2;
             display: flex;align-items: center;gap: 10px;}
@@ -62,7 +100,7 @@
         .image-upload {border: 2px dashed #d4c9b8;border-radius: 4px;
             padding: 20px;text-align: center;cursor: pointer;transition: border-color 0.3s;
             background-color: #f9f7f1;}
-        .image-upload:hover {border-color: #8c2e2e;}
+        .image-upload:hover {border-color = '#8c2e2e';}
         .image-upload i {font-size: 2.5rem;color: #8c2e2e;margin-bottom: 10px;}
         #imagePreview {max-width: 100%;max-height: 200px;margin-top: 15px;display: none;}
         .font-size-control {display: flex;align-items: center;gap: 15px;}
@@ -84,11 +122,11 @@
         .reset-btn {background-color: #e0d6c2;color: #333;}
         .reset-btn:hover {background-color: #d4c9b8;}
         
-        /* 保存按钮样式 */
+        /* 新增：保存和加载按钮样式 */
         .save-btn {background-color: #2e8c5d;color: white;}
-        .save-btn:hover {background-color: #247049;transform: translateY(-2px);}
-        .load-btn {background-color: #8c6d2e;color: white;}
-        .load-btn:hover {background-color: #6d5423;transform: translateY(-2px);}
+        .save-btn:hover {background-color: #247349;transform: translateY(-2px);}
+        .load-btn {background-color: #8c5d2e;color: white;}
+        .load-btn:hover {background-color: #6d4923;transform: translateY(-2px);}
         
         /* 报纸样式 */
         .newspaper {font-family: 'Noto Serif SC', serif;background-color: #faf8f2;
@@ -117,44 +155,100 @@
             text-align: justify;hyphens: auto;}
         .article-text.no-image {flex: 1;min-width: 100%;column-count: 2;}
         .article-text p {margin-bottom: 15px;text-indent: 2em;}
+        /* 删除首字母下沉设计 */
         .newspaper-footer {margin-top: 40px;padding-top: 20px;
             border-top: 1px solid #d4c9b8;font-size: 0.9rem;color: #666;text-align: center;}
         .generated-date {font-style: italic;}
-        .editor-panel::-webkit-scrollbar {
-            width: 8px;}
-        .editor-panel::-webkit-scrollbar-track {background: #f1f1f1;border-radius: 4px;}
-        .editor-panel::-webkit-scrollbar-thumb {background: #c1c1c1;border-radius: 4px;}
-        .editor-panel::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;}
         @media (max-width: 768px) {
             .main-content {flex-direction: column;}
             .editor-panel, .newspaper-preview {min-width: 100%;}
             .article-text {column-count: 1;}
             .article-title {font-size: 2rem;}
             .paper-name {font-size: 2.5rem;}
+            .layout-controls {justify-content: center;}
+            .layout-btn {font-size: 0.8rem;padding: 6px 10px;}
             .buttons {flex-wrap: wrap;}
-            button {min-width: 150px;}}
-        @media (min-width: 992px) and (max-width: 1199px) {
-            .editor-panel {flex: 0 0 45%;min-width: 450px;
-                max-height: calc(100vh - 180px);
-                position: sticky;
-                top: 20px;}
-            .newspaper-preview {flex: 0 0 55%;min-width: 600px;}}
-        @media (min-width: 1200px) {body {height: 100vh;overflow: hidden;}
-            .container {height: 100%;padding: 20px;}
-            .main-content {flex: 1;height: calc(100vh - 180px);}
-            .editor-panel {flex: 0 0 40%;
-                max-width: 600px;max-height: calc(100vh - 180px);position: sticky;
-                top: 20px;overflow-y: auto;
-                z-index: 10;}
-            .newspaper-preview {flex: 0 0 60%;min-width: 800px;max-width: 1000px;
-                height: 100%;overflow-y: auto;padding: 20px;}
-            .newspaper {min-height: auto;padding: 40px;height: auto;}}
+            .buttons button {min-width: calc(50% - 7.5px);}}
         
-        @media (min-width: 1600px) {
-            .container {max-width: 90%;gap: 40px;}
-            .editor-panel {flex: 0 0 35%;max-width: 650px;}
-            .newspaper-preview {flex: 0 0 65%;min-width: 900px;}}
+        /* 新增：错误弹窗样式 */
+        .error-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .error-content {
+            background-color: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .error-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #d32f2f;
+            font-size: 1.5rem;
+        }
+        .error-header i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+        .error-details {
+            background-color: #f9f7f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #d32f2f;
+        }
+        .error-solution {
+            background-color: #f0f7f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #2e8c5d;
+        }
+        .error-solution h4 {
+            color: #2e8c5d;
+            margin-bottom: 10px;
+        }
+        .error-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .error-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .error-btn-primary {
+            background-color: #8c2e2e;
+            color: white;
+        }
+        .error-btn-primary:hover {
+            background-color: #6d2323;
+        }
+        .error-btn-secondary {
+            background-color: #e0d6c2;
+            color: #333;
+        }
+        .error-btn-secondary:hover {
+            background-color: #d4c9b8;
+        }
         
         .toast {position: fixed;bottom: 20px;right: 20px;background-color: #2e8c5d;
             color: white;padding: 15px 25px;border-radius: 4px;
@@ -186,6 +280,17 @@
             <h1><i class="fas fa-newspaper"></i> 类报纸排版生成器</h1>
             <p class="subtitle">工具制作：@村里最乱炒的坏厨</p>
         </header>
+        
+        <!-- 新增：布局控制按钮 -->
+        <div class="layout-controls">
+            <button id="horizontalLayoutBtn" class="layout-btn active">
+                <i class="fas fa-columns"></i> 左右布局
+            </button>
+            <button id="verticalLayoutBtn" class="layout-btn">
+                <i class="fas fa-stream"></i> 上下布局
+            </button>
+        </div>
+        
         <div class="main-content">
             <div class="editor-panel">
                 <h2 class="section-title"><i class="fas fa-sliders-h"></i> 自定义设置</h2>
@@ -292,6 +397,15 @@
                                 <span id="paperDateColorValue" class="color-value">#666666</span>
                             </div>
                             <div id="paperDateColorPreview" class="color-preview" style="background-color: #666666;"></div>
+                        </div>
+                    </div>
+                    <!-- 新增：副标题显示/隐藏开关 -->
+                    <div class="control-row">
+                        <div class="control-item">
+                            <label for="subtitleVisible" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="subtitleVisible" checked>
+                                <span>显示副标题/期号与日期</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -410,6 +524,15 @@
                             <input type="text" id="footerText" placeholder="请输入自定义底部信息..." value="本报纸由「XX日报生成器」创建于">
                         </div>
                     </div>
+                    <!-- 新增：是否添加日期复选框 -->
+                    <div class="control-row">
+                        <div class="control-item">
+                            <label for="showFooterDate" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="showFooterDate" checked>
+                                <span>在底部信息后添加生成日期</span>
+                            </label>
+                        </div>
+                    </div>
                     <div class="control-row">
                         <div class="control-item">
                             <label for="footerFontSize">底部信息字号：<span id="footerSizeValue" class="size-value">14</span>px</label>
@@ -427,6 +550,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- 修改：添加保存和加载按钮 -->
                 <div class="buttons">
                     <button class="generate-btn" id="generateBtn">
                         <i class="fas fa-magic"></i> 生成报纸
@@ -435,10 +559,10 @@
                         <i class="fas fa-download"></i> 下载图片
                     </button>
                     <button class="save-btn" id="saveBtn">
-                        <i class="fas fa-save"></i> 保存设置
+                        <i class="fas fa-save"></i> 储存内容
                     </button>
                     <button class="load-btn" id="loadBtn">
-                        <i class="fas fa-folder-open"></i> 加载设置
+                        <i class="fas fa-folder-open"></i> 加载内容
                     </button>
                     <button class="reset-btn" id="resetBtn">
                         <i class="fas fa-redo"></i> 重置
@@ -471,13 +595,35 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 新增：错误弹窗 -->
+        <div class="error-modal" id="errorModal">
+            <div class="error-content">
+                <div class="error-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>图片生成错误</h3>
+                </div>
+                <p>抱歉，生成图片时遇到了问题。以下是可能的错误原因和解决方案：</p>
+                <div class="error-details" id="errorDetails">
+                    <!-- 错误详情将动态填充到这里 -->
+                </div>
+                <div class="error-solution">
+                    <h4>可能的解决方案：</h4>
+                    <ul id="errorSolution">
+                        <!-- 解决方案将动态填充到这里 -->
+                    </ul>
+                </div>
+                <div class="error-buttons">
+                    <button class="error-btn error-btn-secondary" id="closeErrorBtn">关闭</button>
+                    <button class="error-btn error-btn-primary" id="retryBtn">重试</button>
+                </div>
+            </div>
+        </div>
+        
         <div class="toast" id="toast">报纸已更新！</div>
         <footer>
             <p>工具制作：@村里最乱炒的坏厨</p>
             <p>提示：所有设置更改会自动实时预览，点击"下载图片"将保存为PNG格式</p>
-            <p style="margin-top: 10px; font-size: 0.8rem; color: #888;">
-                <i class="fas fa-info-circle"></i> 使用"保存设置"功能可将当前配置保存到浏览器本地，刷新页面后可使用"加载设置"恢复
-            </p>
         </footer>
     </div>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -488,6 +634,7 @@
         const imagePreview = document.getElementById('imagePreview');
         const imageCaption = document.getElementById('imageCaption');
         const imageVisible = document.getElementById('imageVisible');
+        
         // 报纸头部控件
         const headerVisible = document.getElementById('headerVisible');
         const paperName = document.getElementById('paperName');
@@ -506,6 +653,9 @@
         const paperDateColorValue = document.getElementById('paperDateColorValue');
         const paperDateColorPreview = document.getElementById('paperDateColorPreview');
         const paperDateFontPreview = document.getElementById('paperDateFontPreview');
+        
+        // 新增：副标题显示/隐藏控件
+        const subtitleVisible = document.getElementById('subtitleVisible');
         
         // 标题控件
         const articleTitle = document.getElementById('articleTitle');
@@ -539,11 +689,14 @@
         const footerColorValue = document.getElementById('footerColorValue');
         const footerColorPreview = document.getElementById('footerColorPreview');
         
+        // 新增：底部日期显示/隐藏控件
+        const showFooterDate = document.getElementById('showFooterDate');
+        
         // 按钮和预览
         const generateBtn = document.getElementById('generateBtn');
         const downloadBtn = document.getElementById('downloadBtn');
-        const saveBtn = document.getElementById('saveBtn');
-        const loadBtn = document.getElementById('loadBtn');
+        const saveBtn = document.getElementById('saveBtn'); // 新增
+        const loadBtn = document.getElementById('loadBtn'); // 新增
         const resetBtn = document.getElementById('resetBtn');
         const newspaperHeader = document.getElementById('newspaperHeader');
         const previewPaperName = document.getElementById('previewPaperName');
@@ -558,6 +711,19 @@
         const generationDate = document.getElementById('generationDate');
         const toast = document.getElementById('toast');
         
+        // 新增：布局切换控件
+        const horizontalLayoutBtn = document.getElementById('horizontalLayoutBtn');
+        const verticalLayoutBtn = document.getElementById('verticalLayoutBtn');
+        const mainContent = document.querySelector('.main-content');
+        const container = document.querySelector('.container');
+        
+        // 新增：错误弹窗控件
+        const errorModal = document.getElementById('errorModal');
+        const errorDetails = document.getElementById('errorDetails');
+        const errorSolution = document.getElementById('errorSolution');
+        const closeErrorBtn = document.getElementById('closeErrorBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        
         // 初始化字体预览
         updateFontPreview(paperNameFontPreview, paperNameFontFamily.value);
         updateFontPreview(paperDateFontPreview, paperDateFontFamily.value);
@@ -569,144 +735,259 @@
         const formattedDate = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
         generationDate.textContent = formattedDate;
         
+        // 页面加载时检查是否有保存的内容
+        window.addEventListener('DOMContentLoaded', () => {
+            // 检查是否有保存的数据
+            if (localStorage.getItem('newspaperSettings') && confirm('检测到上次保存的报纸设置，是否恢复？')) {
+                loadSettings();
+            }
+            
+            // 更新颜色预览
+            paperNameColorPreview.style.backgroundColor = paperNameColor.value;
+            paperDateColorPreview.style.backgroundColor = paperDateColor.value;
+            titleColorPreview.style.backgroundColor = titleColor.value;
+            contentColorPreview.style.backgroundColor = contentColor.value;
+            footerColorPreview.style.backgroundColor = footerColor.value;
+            
+            // 应用所有样式并初始化报纸
+            applyAllStyles();
+            updateNewspaper();
+        });
+        
+        // 新增：布局切换功能
+        horizontalLayoutBtn.addEventListener('click', function() {
+            container.classList.remove('vertical-layout');
+            horizontalLayoutBtn.classList.add('active');
+            verticalLayoutBtn.classList.remove('active');
+            showToast('已切换为左右布局');
+        });
+        
+        verticalLayoutBtn.addEventListener('click', function() {
+            container.classList.add('vertical-layout');
+            verticalLayoutBtn.classList.add('active');
+            horizontalLayoutBtn.classList.remove('active');
+            showToast('已切换为上下布局');
+        });
+        
+        // 新增：副标题显示/隐藏控制
+        subtitleVisible.addEventListener('change', function() {
+            previewPaperDate.style.display = this.checked ? 'block' : 'none';
+            updateNewspaper();
+        });
+        
+        // 新增：底部日期显示/隐藏控制
+        showFooterDate.addEventListener('change', function() {
+            updateFooterText();
+        });
+        
         // 图片显示/隐藏控制
         imageVisible.addEventListener('change', function() {
-            if (this.checked) {articleImageContainer.style.display = 'block';
+            if (this.checked) {
+                articleImageContainer.style.display = 'block';
                 previewContent.classList.remove('no-image');
-            } else {articleImageContainer.style.display = 'none';
-                previewContent.classList.add('no-image');}
-            updateNewspaper();});
+            } else {
+                articleImageContainer.style.display = 'none';
+                previewContent.classList.add('no-image');
+            }
+            updateNewspaper();
+        });
         
         // 图片上传功能
         imageUpload.addEventListener('click', () => {
-            imageInput.click();});
+            imageInput.click();
+        });
+        
         imageInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {const reader = new FileReader();
-                reader.onload = function(e) {imagePreview.src = e.target.result;
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
                     imagePreview.style.display = 'block';
                     previewImage.src = e.target.result;
                     updateNewspaper();
-                    showToast('图片上传成功！');};
-                reader.readAsDataURL(this.files[0]);}});
+                    showToast('图片上传成功！');
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
         
         // 支持拖放上传
         imageUpload.addEventListener('dragover', (e) => {
             e.preventDefault();
-            imageUpload.style.borderColor = '#8c2e2e';});
+            imageUpload.style.borderColor = '#8c2e2e';
+        });
+        
         imageUpload.addEventListener('dragleave', () => {
-            imageUpload.style.borderColor = '#d4c9b8';});
+            imageUpload.style.borderColor = '#d4c9b8';
+        });
+        
         imageUpload.addEventListener('drop', (e) => {
             e.preventDefault();
             imageUpload.style.borderColor = '#d4c9b8';
             if (e.dataTransfer.files.length) {
                 imageInput.files = e.dataTransfer.files;
                 const reader = new FileReader();
-                reader.onload = function(e) {imagePreview.src = e.target.result;
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
                     imagePreview.style.display = 'block';
                     previewImage.src = e.target.result;
                     updateNewspaper();
-                    showToast('图片上传成功！');};
-                reader.readAsDataURL(e.dataTransfer.files[0]);}});
+                    showToast('图片上传成功！');
+                };
+                reader.readAsDataURL(e.dataTransfer.files[0]);
+            }
+        });
         
         // 报纸头部控制
         headerVisible.addEventListener('change', function() {
             newspaperHeader.style.display = this.checked ? 'block' : 'none';
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperNameFontSize.addEventListener('input', function() {
             paperNameSizeValue.textContent = this.value;
             previewPaperName.style.fontSize = `${this.value}px`;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperNameFontFamily.addEventListener('change', function() {
             updateFontPreview(paperNameFontPreview, this.value);
             previewPaperName.style.fontFamily = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperNameColor.addEventListener('input', function() {
             paperNameColorValue.textContent = this.value;
             paperNameColorPreview.style.backgroundColor = this.value;
             previewPaperName.style.color = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperDateFontSize.addEventListener('input', function() {
             paperDateSizeValue.textContent = this.value;
             previewPaperDate.style.fontSize = `${this.value}px`;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperDateFontFamily.addEventListener('change', function() {
             updateFontPreview(paperDateFontPreview, this.value);
             previewPaperDate.style.fontFamily = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperDateColor.addEventListener('input', function() {
             paperDateColorValue.textContent = this.value;
             paperDateColorPreview.style.backgroundColor = this.value;
             previewPaperDate.style.color = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
         
         // 标题样式控制
         titleFontSize.addEventListener('input', function() {
             titleSizeValue.textContent = this.value;
             previewTitle.style.fontSize = `${this.value}px`;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         titleFontFamily.addEventListener('change', function() {
             updateFontPreview(titleFontPreview, this.value);
             previewTitle.style.fontFamily = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         titleColor.addEventListener('input', function() {
             titleColorValue.textContent = this.value;
             titleColorPreview.style.backgroundColor = this.value;
             previewTitle.style.color = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         titleAlign.addEventListener('change', function() {
             previewTitle.style.textAlign = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
         
         // 正文样式控制
         contentFontSize.addEventListener('input', function() {
             contentSizeValue.textContent = this.value;
             previewContent.style.fontSize = `${this.value}px`;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         contentFontFamily.addEventListener('change', function() {
             updateFontPreview(contentFontPreview, this.value);
             previewContent.style.fontFamily = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         contentColor.addEventListener('input', function() {
             contentColorValue.textContent = this.value;
             contentColorPreview.style.backgroundColor = this.value;
             previewContent.style.color = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         lineHeight.addEventListener('input', function() {
             lineHeightValue.textContent = this.value;
             previewContent.style.lineHeight = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
         
         // 底部信息控制
         footerVisible.addEventListener('change', function() {
             newspaperFooter.style.display = this.checked ? 'block' : 'none';
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         footerFontSize.addEventListener('input', function() {
             footerSizeValue.textContent = this.value;
             previewFooterText.style.fontSize = `${this.value}px`;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         footerColor.addEventListener('input', function() {
             footerColorValue.textContent = this.value;
             footerColorPreview.style.backgroundColor = this.value;
             previewFooterText.style.color = this.value;
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         footerText.addEventListener('input', function() {
-            const footerContent = this.value ? this.value : "本报纸由「XX日报生成器」创建于";
-            previewFooterText.innerHTML = `${footerContent} <span id="generationDate">${generationDate.textContent}</span>`;
-            updateNewspaper();});
+            updateFooterText();
+        });
+        
+        // 更新底部文本的函数
+        function updateFooterText() {
+            const footerContent = footerText.value ? footerText.value : "本报纸由「XX日报生成器」创建于";
+            if (showFooterDate.checked) {
+                previewFooterText.innerHTML = `${footerContent} <span id="generationDate">${generationDate.textContent}</span>`;
+            } else {
+                previewFooterText.innerHTML = footerContent;
+            }
+            updateNewspaper();
+        }
         
         // 文本内容实时更新
         paperName.addEventListener('input', function() {
             previewPaperName.textContent = this.value || "报纸名称";
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         paperDateText.addEventListener('input', function() {
             previewPaperDate.textContent = this.value || "日期信息";
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         articleTitle.addEventListener('input', function() {
             previewTitle.textContent = this.value || "文章标题";
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         imageCaption.addEventListener('input', function() {
             previewCaption.textContent = this.value || "图片说明";
-            updateNewspaper();});
+            updateNewspaper();
+        });
+        
         articleContent.addEventListener('input', function() {
             const contentText = this.value || "文章内容为空，请在上方编辑区域输入内容。";
             const paragraphs = contentText.split('\n').filter(p => p.trim() !== '');
@@ -714,8 +995,10 @@
             paragraphs.forEach(paragraph => {
                 const p = document.createElement('p');
                 p.textContent = paragraph;
-                previewContent.appendChild(p);});
-            updateNewspaper();});
+                previewContent.appendChild(p);
+            });
+            updateNewspaper();
+        });
 
         // 更新字体预览
         function updateFontPreview(previewElement, fontFamily) {
@@ -730,14 +1013,182 @@
             else if (fontFamily.includes('Courier New')) fontName = "打字机体";
             else if (fontFamily.includes('Source Code Pro')) fontName = "等宽字体";
             else if (fontFamily.includes('Comic Neue')) fontName = "手写体";
-            previewElement.textContent = fontName;}
+            previewElement.textContent = fontName;
+        }
         
         // 生成报纸预览
         generateBtn.addEventListener('click', function() {
             // 强制重新应用所有样式到预览
             applyAllStyles();
             updateNewspaper();
-            showToast('报纸已重新生成！');});
+            showToast('报纸已重新生成！');
+        });
+        
+        // 新增：保存设置到本地存储
+        saveBtn.addEventListener('click', function() {
+            const settings = collectAllSettings();
+            localStorage.setItem('newspaperSettings', JSON.stringify(settings));
+            showToast('设置已保存到浏览器本地存储！');
+        });
+        
+        // 新增：从本地存储加载设置
+        loadBtn.addEventListener('click', function() {
+            if (confirm('确定要加载上次保存的设置吗？这将覆盖当前的设置。')) {
+                loadSettings();
+            }
+        });
+        
+        // 收集所有设置
+        function collectAllSettings() {
+            const settings = {
+                // 图片设置
+                imageVisible: imageVisible.checked,
+                imageCaption: imageCaption.value,
+                // 如果有图片，保存图片的base64数据
+                imageData: imagePreview.src.startsWith('data:image') ? imagePreview.src : null,
+                
+                // 报纸头部设置
+                headerVisible: headerVisible.checked,
+                paperName: paperName.value,
+                paperNameFontSize: paperNameFontSize.value,
+                paperNameFontFamily: paperNameFontFamily.value,
+                paperNameColor: paperNameColor.value,
+                paperDateText: paperDateText.value,
+                paperDateFontSize: paperDateFontSize.value,
+                paperDateFontFamily: paperDateFontFamily.value,
+                paperDateColor: paperDateColor.value,
+                subtitleVisible: subtitleVisible.checked,
+                
+                // 标题样式设置
+                articleTitle: articleTitle.value,
+                titleFontSize: titleFontSize.value,
+                titleFontFamily: titleFontFamily.value,
+                titleColor: titleColor.value,
+                titleAlign: titleAlign.value,
+                
+                // 正文样式设置
+                articleContent: articleContent.value,
+                contentFontSize: contentFontSize.value,
+                contentFontFamily: contentFontFamily.value,
+                contentColor: contentColor.value,
+                lineHeight: lineHeight.value,
+                
+                // 底部信息设置
+                footerVisible: footerVisible.checked,
+                footerText: footerText.value,
+                footerFontSize: footerFontSize.value,
+                footerColor: footerColor.value,
+                showFooterDate: showFooterDate.checked,
+                
+                // 布局设置
+                layout: container.classList.contains('vertical-layout') ? 'vertical' : 'horizontal'
+            };
+            return settings;
+        }
+        
+        // 加载设置
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('newspaperSettings');
+            if (!savedSettings) {
+                showToast('没有找到保存的设置！');
+                return;
+            }
+            
+            try {
+                const settings = JSON.parse(savedSettings);
+                
+                // 图片设置
+                imageVisible.checked = settings.imageVisible;
+                imageCaption.value = settings.imageCaption;
+                if (settings.imageData) {
+                    imagePreview.src = settings.imageData;
+                    imagePreview.style.display = 'block';
+                    previewImage.src = settings.imageData;
+                }
+                articleImageContainer.style.display = settings.imageVisible ? 'block' : 'none';
+                previewContent.classList.toggle('no-image', !settings.imageVisible);
+                
+                // 报纸头部设置
+                headerVisible.checked = settings.headerVisible;
+                paperName.value = settings.paperName;
+                paperNameFontSize.value = settings.paperNameFontSize;
+                paperNameSizeValue.textContent = settings.paperNameFontSize;
+                paperNameFontFamily.value = settings.paperNameFontFamily;
+                updateFontPreview(paperNameFontPreview, settings.paperNameFontFamily);
+                paperNameColor.value = settings.paperNameColor;
+                paperNameColorValue.textContent = settings.paperNameColor;
+                paperNameColorPreview.style.backgroundColor = settings.paperNameColor;
+                
+                paperDateText.value = settings.paperDateText;
+                paperDateFontSize.value = settings.paperDateFontSize;
+                paperDateSizeValue.textContent = settings.paperDateFontSize;
+                paperDateFontFamily.value = settings.paperDateFontFamily;
+                updateFontPreview(paperDateFontPreview, settings.paperDateFontFamily);
+                paperDateColor.value = settings.paperDateColor;
+                paperDateColorValue.textContent = settings.paperDateColor;
+                paperDateColorPreview.style.backgroundColor = settings.paperDateColor;
+                
+                subtitleVisible.checked = settings.subtitleVisible !== undefined ? settings.subtitleVisible : true;
+                previewPaperDate.style.display = subtitleVisible.checked ? 'block' : 'none';
+                
+                newspaperHeader.style.display = settings.headerVisible ? 'block' : 'none';
+                
+                // 标题样式设置
+                articleTitle.value = settings.articleTitle;
+                titleFontSize.value = settings.titleFontSize;
+                titleSizeValue.textContent = settings.titleFontSize;
+                titleFontFamily.value = settings.titleFontFamily;
+                updateFontPreview(titleFontPreview, settings.titleFontFamily);
+                titleColor.value = settings.titleColor;
+                titleColorValue.textContent = settings.titleColor;
+                titleColorPreview.style.backgroundColor = settings.titleColor;
+                titleAlign.value = settings.titleAlign;
+                
+                // 正文样式设置
+                articleContent.value = settings.articleContent;
+                contentFontSize.value = settings.contentFontSize;
+                contentSizeValue.textContent = settings.contentFontSize;
+                contentFontFamily.value = settings.contentFontFamily;
+                updateFontPreview(contentFontPreview, settings.contentFontFamily);
+                contentColor.value = settings.contentColor;
+                contentColorValue.textContent = settings.contentColor;
+                contentColorPreview.style.backgroundColor = settings.contentColor;
+                lineHeight.value = settings.lineHeight;
+                lineHeightValue.textContent = settings.lineHeight;
+                
+                // 底部信息设置
+                footerVisible.checked = settings.footerVisible;
+                footerText.value = settings.footerText;
+                footerFontSize.value = settings.footerFontSize;
+                footerSizeValue.textContent = settings.footerFontSize;
+                footerColor.value = settings.footerColor;
+                footerColorValue.textContent = settings.footerColor;
+                footerColorPreview.style.backgroundColor = settings.footerColor;
+                newspaperFooter.style.display = settings.footerVisible ? 'block' : 'none';
+                
+                // 新增：底部日期显示/隐藏设置
+                showFooterDate.checked = settings.showFooterDate !== undefined ? settings.showFooterDate : true;
+                
+                // 布局设置
+                if (settings.layout === 'vertical') {
+                    container.classList.add('vertical-layout');
+                    verticalLayoutBtn.classList.add('active');
+                    horizontalLayoutBtn.classList.remove('active');
+                } else {
+                    container.classList.remove('vertical-layout');
+                    horizontalLayoutBtn.classList.add('active');
+                    verticalLayoutBtn.classList.remove('active');
+                }
+                
+                // 更新预览
+                applyAllStyles();
+                updateNewspaper();
+                showToast('设置已加载！');
+            } catch (error) {
+                console.error('加载设置时出错:', error);
+                showToast('加载设置失败，数据可能已损坏！');
+            }
+        }
         
         // 应用所有样式的函数
         function applyAllStyles() {
@@ -759,6 +1210,7 @@
             previewPaperDate.style.fontSize = `${paperDateFontSize.value}px`;
             previewPaperDate.style.fontFamily = paperDateFontFamily.value;
             previewPaperDate.style.color = paperDateColor.value;
+            previewPaperDate.style.display = subtitleVisible.checked ? 'block' : 'none';
             
             // 应用标题样式
             previewTitle.textContent = articleTitle.value || "文章标题";
@@ -777,7 +1229,8 @@
             paragraphs.forEach(paragraph => {
                 const p = document.createElement('p');
                 p.textContent = paragraph;
-                previewContent.appendChild(p);});
+                previewContent.appendChild(p);
+            });
             
             // 应用正文字体样式
             previewContent.style.fontSize = `${contentFontSize.value}px`;
@@ -787,15 +1240,15 @@
             
             // 应用底部信息样式
             newspaperFooter.style.display = footerVisible.checked ? 'block' : 'none';
-            const footerContent = footerText.value ? footerText.value : "本报纸由「XX日报生成器」创建于";
-            previewFooterText.innerHTML = `${footerContent} <span id="generationDate">${generationDate.textContent}</span>`;
+            updateFooterText();
             previewFooterText.style.fontSize = `${footerFontSize.value}px`;
             previewFooterText.style.color = footerColor.value;
             
             // 更新生成日期
             const now = new Date();
             const formattedDate = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-            generationDate.textContent = formattedDate;}
+            generationDate.textContent = formattedDate;
+        }
         
         // 更新报纸预览
         function updateNewspaper() {
@@ -807,9 +1260,51 @@
             // 添加动画效果
             newspaperElement.style.transform = 'scale(1.02)';
             newspaperElement.style.boxShadow = '0 0 30px rgba(140, 46, 46, 0.3)';
+            
             setTimeout(() => {
                 newspaperElement.style.transform = originalTransform;
-                newspaperElement.style.boxShadow = originalBoxShadow;}, 300);}
+                newspaperElement.style.boxShadow = originalBoxShadow;
+            }, 300);
+        }
+        
+        // 新增：显示错误弹窗
+        function showErrorModal(error, retryFunction) {
+            errorDetails.innerHTML = `
+                <p><strong>错误类型：</strong>${error.type || '未知错误'}</p>
+                <p><strong>错误消息：</strong>${error.message || '未知错误消息'}</p>
+                <p><strong>错误详情：</strong>${error.details || '无详细错误信息'}</p>
+            `;
+            
+            errorSolution.innerHTML = `
+                <li>检查网络连接是否正常</li>
+                <li>尝试减小图片尺寸或分辨率</li>
+                <li>关闭浏览器插件，特别是广告拦截器</li>
+                <li>尝试使用不同的浏览器（推荐Chrome或Firefox）</li>
+                <li>如果包含外部图片，请确保图片URL可访问</li>
+                <li>尝试等待几分钟后重试</li>
+            `;
+            
+            errorModal.style.display = 'flex';
+            
+            // 设置重试按钮功能
+            retryBtn.onclick = function() {
+                errorModal.style.display = 'none';
+                if (retryFunction) {
+                    retryFunction();
+                }
+            };
+            
+            closeErrorBtn.onclick = function() {
+                errorModal.style.display = 'none';
+            };
+            
+            // 点击模态框外部关闭
+            errorModal.addEventListener('click', function(e) {
+                if (e.target === errorModal) {
+                    errorModal.style.display = 'none';
+                }
+            });
+        }
         
         // 下载报纸为图片
         downloadBtn.addEventListener('click', function() {
@@ -820,7 +1315,15 @@
                 backgroundColor: '#faf8f2',
                 scale: 2,
                 useCORS: true,
-                logging: false
+                logging: false,
+                onclone: function(clonedDoc) {
+                    // 在克隆的文档中修复可能的问题
+                    const clonedNewspaper = clonedDoc.getElementById('newspaper');
+                    if (clonedNewspaper) {
+                        // 确保所有字体都已加载
+                        clonedNewspaper.style.fontFamily = document.getElementById('newspaper').style.fontFamily;
+                    }
+                }
             }).then(canvas => {
                 // 创建下载链接
                 const link = document.createElement('a');
@@ -828,155 +1331,34 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 showToast('图片下载完成！');
-            }).catch(err => {console.error('生成图片时出错:', err);
-                showToast('生成图片失败，请重试。');});});
-        
-        // 保存当前设置
-        saveBtn.addEventListener('click', function() {
-            try {
-                const settings = {
-                    // 图片设置
-                    imageVisible: imageVisible.checked,
-                    imageCaption: imageCaption.value,
-                    
-                    // 报纸头部设置
-                    headerVisible: headerVisible.checked,
-                    paperName: paperName.value,
-                    paperNameFontSize: paperNameFontSize.value,
-                    paperNameFontFamily: paperNameFontFamily.value,
-                    paperNameColor: paperNameColor.value,
-                    paperDateText: paperDateText.value,
-                    paperDateFontSize: paperDateFontSize.value,
-                    paperDateFontFamily: paperDateFontFamily.value,
-                    paperDateColor: paperDateColor.value,
-                    
-                    // 标题样式设置
-                    articleTitle: articleTitle.value,
-                    titleFontSize: titleFontSize.value,
-                    titleFontFamily: titleFontFamily.value,
-                    titleColor: titleColor.value,
-                    titleAlign: titleAlign.value,
-                    
-                    // 正文样式设置
-                    articleContent: articleContent.value,
-                    contentFontSize: contentFontSize.value,
-                    contentFontFamily: contentFontFamily.value,
-                    contentColor: contentColor.value,
-                    lineHeight: lineHeight.value,
-                    
-                    // 底部信息设置
-                    footerVisible: footerVisible.checked,
-                    footerText: footerText.value,
-                    footerFontSize: footerFontSize.value,
-                    footerColor: footerColor.value,
-                    
-                    // 保存时间
-                    savedAt: new Date().toISOString()};
+            }).catch(err => {
+                console.error('生成图片时出错:', err);
                 
-                // 保存到localStorage
-                localStorage.setItem('newspaperSettings', JSON.stringify(settings));
-                showToast('设置已保存到浏览器本地存储！');
+                // 分析错误并提供详细的错误信息
+                let errorInfo = {
+                    type: 'html2canvas错误',
+                    message: err.message || '未知错误',
+                    details: ''
+                };
                 
-                // 显示保存时间
-                const saveTime = new Date(settings.savedAt);
-                console.log('设置保存时间:', saveTime.toLocaleString());
-            } catch (error) {
-                console.error('保存设置时出错:', error);
-                showToast('保存设置失败，请重试。');}
+                // 根据错误类型提供更详细的错误信息
+                if (err.message && err.message.includes('CORS')) {
+                    errorInfo.details = '跨域资源共享(CORS)错误。这可能是因为图片来自不同的域，浏览器出于安全原因阻止了访问。';
+                } else if (err.message && err.message.includes('tainted')) {
+                    errorInfo.details = '画布被污染错误。这可能是因为使用了跨域图片，且图片服务器未设置正确的CORS头部。';
+                } else if (err.message && err.message.includes('timeout')) {
+                    errorInfo.details = '操作超时。生成过程花费了太长时间。';
+                } else if (err.message && err.message.includes('memory')) {
+                    errorInfo.details = '内存不足。报纸内容可能太复杂或图片太大。';
+                }
+                
+                // 显示错误弹窗
+                showErrorModal(errorInfo, function() {
+                    // 重试函数
+                    downloadBtn.click();
+                });
+            });
         });
-        
-        // 从localStorage加载设置
-        loadBtn.addEventListener('click', function() {
-            try {const savedSettings = localStorage.getItem('newspaperSettings');
-                if (!savedSettings) {
-                    showToast('未找到保存的设置。');
-                    return;}
-                const settings = JSON.parse(savedSettings);
-                
-                // 加载图片设置
-                imageVisible.checked = settings.imageVisible;
-                imageCaption.value = settings.imageCaption || "";
-                
-                // 加载报纸头部设置
-                headerVisible.checked = settings.headerVisible;
-                paperName.value = settings.paperName || "";
-                paperNameFontSize.value = settings.paperNameFontSize || 56;
-                paperNameSizeValue.textContent = settings.paperNameFontSize || 56;
-                paperNameFontFamily.value = settings.paperNameFontFamily || "'Playfair Display', serif";
-                paperNameColor.value = settings.paperNameColor || "#222222";
-                paperNameColorValue.textContent = settings.paperNameColor || "#222222";
-                paperNameColorPreview.style.backgroundColor = settings.paperNameColor || "#222222";
-                updateFontPreview(paperNameFontPreview, paperNameFontFamily.value);
-                paperDateText.value = settings.paperDateText || "";
-                paperDateFontSize.value = settings.paperDateFontSize || 18;
-                paperDateSizeValue.textContent = settings.paperDateFontSize || 18;
-                paperDateFontFamily.value = settings.paperDateFontFamily || "'Noto Serif SC', serif";
-                paperDateColor.value = settings.paperDateColor || "#666666";
-                paperDateColorValue.textContent = settings.paperDateColor || "#666666";
-                paperDateColorPreview.style.backgroundColor = settings.paperDateColor || "#666666";
-                updateFontPreview(paperDateFontPreview, paperDateFontFamily.value);
-                
-                // 加载标题样式设置
-                articleTitle.value = settings.articleTitle || "";
-                titleFontSize.value = settings.titleFontSize || 48;
-                titleSizeValue.textContent = settings.titleFontSize || 48;
-                titleFontFamily.value = settings.titleFontFamily || "'Playfair Display', serif";
-                titleColor.value = settings.titleColor || "#222222";
-                titleColorValue.textContent = settings.titleColor || "#222222";
-                titleColorPreview.style.backgroundColor = settings.titleColor || "#222222";
-                titleAlign.value = settings.titleAlign || "center";
-                updateFontPreview(titleFontPreview, titleFontFamily.value);
-                
-                // 加载正文样式设置
-                articleContent.value = settings.articleContent || "";
-                contentFontSize.value = settings.contentFontSize || 16;
-                contentSizeValue.textContent = settings.contentFontSize || 16;
-                contentFontFamily.value = settings.contentFontFamily || "'Noto Serif SC', serif";
-                contentColor.value = settings.contentColor || "#333333";
-                contentColorValue.textContent = settings.contentColor || "#333333";
-                contentColorPreview.style.backgroundColor = settings.contentColor || "#333333";
-                lineHeight.value = settings.lineHeight || 1.6;
-                lineHeightValue.textContent = settings.lineHeight || 1.6;
-                updateFontPreview(contentFontPreview, contentFontFamily.value);
-                
-                // 加载底部信息设置
-                footerVisible.checked = settings.footerVisible;
-                footerText.value = settings.footerText || "";
-                footerFontSize.value = settings.footerFontSize || 14;
-                footerSizeValue.textContent = settings.footerFontSize || 14;
-                footerColor.value = settings.footerColor || "#666666";
-                footerColorValue.textContent = settings.footerColor || "#666666";
-                footerColorPreview.style.backgroundColor = settings.footerColor || "#666666";
-                
-                // 更新生成日期
-                const now = new Date();
-                const formattedDate = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-                generationDate.textContent = formattedDate;
-                
-                // 应用所有样式
-                applyAllStyles();
-                updateNewspaper();
-                
-                // 显示保存时间
-                const saveTime = new Date(settings.savedAt);
-                showToast(`设置已加载 (保存于: ${saveTime.toLocaleDateString()} ${saveTime.toLocaleTimeString()})`);
-            } catch (error) {console.error('加载设置时出错:', error);
-                showToast('加载设置失败，数据可能已损坏。');}
-        });
-        
-        // 自动加载保存的设置（如果存在）
-        function autoLoadSettings() {
-            try {
-                const savedSettings = localStorage.getItem('newspaperSettings');
-                if (savedSettings) {
-                    const settings = JSON.parse(savedSettings);
-                    const saveTime = new Date(settings.savedAt);
-                    console.log('检测到保存的设置，保存时间:', saveTime.toLocaleString());
-                    
-                    // 询问用户是否加载保存的设置
-                    if (confirm(`检测到上次保存的设置（保存于: ${saveTime.toLocaleDateString()} ${saveTime.toLocaleTimeString()}），是否加载？`)) {
-                        loadBtn.click();}}
-            } catch (error) {console.error('自动加载设置时出错:', error);}}
         
         // 重置所有设置
         resetBtn.addEventListener('click', function() {
@@ -1019,6 +1401,8 @@
                 paperDateColorValue.textContent = "#666666";
                 paperDateColorPreview.style.backgroundColor = "#666666";
                 previewPaperDate.style.color = "#666666";
+                subtitleVisible.checked = true;
+                previewPaperDate.style.display = 'block';
                 
                 // 重置标题样式
                 articleTitle.value = "这里是文章标题";
@@ -1048,7 +1432,9 @@
                 paragraphs.forEach(paragraph => {
                     const p = document.createElement('p');
                     p.textContent = paragraph;
-                    previewContent.appendChild(p);});
+                    previewContent.appendChild(p);
+                });
+                
                 contentFontSize.value = 16;
                 contentSizeValue.textContent = "16";
                 previewContent.style.fontSize = "16px";
@@ -1067,7 +1453,8 @@
                 footerVisible.checked = true;
                 newspaperFooter.style.display = 'block';
                 footerText.value = "本报纸由「XX日报生成器」创建于";
-                previewFooterText.innerHTML = `本报纸由「XX日报生成器」创建于 <span id="generationDate">${generationDate.textContent}</span>`;
+                showFooterDate.checked = true;
+                updateFooterText();
                 footerFontSize.value = 14;
                 footerSizeValue.textContent = "14";
                 previewFooterText.style.fontSize = "14px";
@@ -1075,6 +1462,11 @@
                 footerColorValue.textContent = "#666666";
                 footerColorPreview.style.backgroundColor = "#666666";
                 previewFooterText.style.color = "#666666";
+                
+                // 重置布局
+                container.classList.remove('vertical-layout');
+                horizontalLayoutBtn.classList.add('active');
+                verticalLayoutBtn.classList.remove('active');
                 
                 // 更新生成日期
                 const now = new Date();
@@ -1084,29 +1476,18 @@
                 // 应用所有样式并更新预览
                 applyAllStyles();
                 updateNewspaper();
-                showToast('所有设置已重置！');}});
+                showToast('所有设置已重置！');
+            }
+        });
         
         // 显示提示消息
         function showToast(message) {
             toast.textContent = message;
             toast.style.display = 'block';
-            setTimeout(() => {toast.style.display = 'none';}, 3000);}
-        
-        // 页面加载时初始化
-        window.addEventListener('DOMContentLoaded', () => {
-            // 更新颜色预览
-            paperNameColorPreview.style.backgroundColor = paperNameColor.value;
-            paperDateColorPreview.style.backgroundColor = paperDateColor.value;
-            titleColorPreview.style.backgroundColor = titleColor.value;
-            contentColorPreview.style.backgroundColor = contentColor.value;
-            footerColorPreview.style.backgroundColor = footerColor.value;
-            
-            // 应用所有样式并初始化报纸
-            applyAllStyles();
-            updateNewspaper();
-            
-            // 自动加载保存的设置
-            autoLoadSettings();});
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
     </script>
 </body>
 </html>
